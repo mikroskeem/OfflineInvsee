@@ -1,0 +1,7 @@
+name: OfflineInventory
+version: ${project.version}
+main: eu.mikroskeem.offlineinventory.Main
+
+commands:
+  offlineinvsee:
+    description: kek

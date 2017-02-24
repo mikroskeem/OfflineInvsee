@@ -13,7 +13,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
 import org.json.JSONObject;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,7 +29,6 @@ public class CBTranslator implements Translator {
     private Class<?> NMSItem;
     private Class<?> NMSItemStack;
     private Class<?> NMSChatSerializer;
-    private Constructor<?> newItemStack;
     private Method NMSSetRepairCost;
     private Method NMSGetItem;
     private Method cBAsBukkitCopy;
@@ -65,7 +63,7 @@ public class CBTranslator implements Translator {
                 String.format("Could not get static method 'asBukkitCopy' from '%s'", cbItemStack.getName())
         );
         try {
-            newItemStack = NMSItemStack.getConstructor(NMSItem, int.class, int.class, boolean.class);
+            NMSItemStack.getConstructor(NMSItem, int.class, int.class, boolean.class);
         } catch (Exception e){
             throw new NullPointerException(String.format("Could not get constructor [Item, int, int, boolean] from 'net.minecraft.server.%s.ItemStack'", getNmsVersion()));
         }
@@ -160,11 +158,13 @@ public class CBTranslator implements Translator {
 
     private Object getNMSItemStack(INBTItem nbtItem){
         try {
-            Object NMSItemStack = newItemStack.newInstance(
-                    getNMSItemById(nbtItem.getId()),
-                    nbtItem.getCount(),
-                    nbtItem.getDamage(),
-                    false);
+            Object NMSItemStack = Reflect.fastConstruct(
+                    this.NMSItemStack,
+                    new Reflect.TypeWrapper(getNMSItemById(nbtItem.getId()), NMSItem),
+                    new Reflect.TypeWrapper(nbtItem.getCount(), int.class),
+                    new Reflect.TypeWrapper(nbtItem.getDamage(), int.class),
+                    new Reflect.TypeWrapper(false, boolean.class)
+            );
             if(nbtItem instanceof NBTBasicItem) {
                 Reflect.invokeMethod(NMSSetRepairCost, NMSItemStack, ((NBTBasicItem)nbtItem).getRepairCost());
             }

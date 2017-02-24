@@ -1,6 +1,7 @@
 package eu.mikroskeem.offlineinventory.utils.nbt.wrappers.items;
 
 import com.flowpowered.nbt.*;
+import eu.mikroskeem.offlineinventory.utils.nbt.utils.NBTPath;
 import eu.mikroskeem.offlineinventory.utils.nbt.wrappers.misc.NBTColor;
 import eu.mikroskeem.offlineinventory.utils.nbt.wrappers.misc.NBTEnchantment;
 import eu.mikroskeem.offlineinventory.utils.nbt.wrappers.misc.NBTHideFlags;
@@ -38,36 +39,28 @@ public class NBTBasicItem implements INBTItem {
         CompoundMap nbt = this.compoundMap = itemTag.clone().getValue();
 
         /* Set base stuff */
-        this.count = (Byte)nbt.get("Count").getValue();
-        this.slot = (Byte)nbt.get("Slot").getValue();
-        this.damage = (Short)nbt.get("Damage").getValue();
-        this.id = (String)nbt.get("id").getValue();
+        this.count = NBTPath.getPath(itemTag, "Count", ByteTag.class).getValue();
+        this.slot = NBTPath.getPath(itemTag, "Slot", ByteTag.class).getValue();
+        this.damage = NBTPath.getPath(itemTag, "Damage", ShortTag.class).getValue();
+        this.id = NBTPath.getPath(itemTag, "id", StringTag.class).getValue();
 
         /* Read optional tags */
         if(nbt.containsKey("tag")){
-            assert nbt.get("tag").getType() == TagType.TAG_COMPOUND : "Property 'tag' is not type of TAG_COMPOUND!";
-            CompoundMap tag = (CompoundMap) nbt.get("tag").getValue();
-
+            CompoundMap tag = NBTPath.getPath(itemTag, "tag", CompoundTag.class).getValue();
             /* Parse display tags */
             if(tag.containsKey("display")){
-                assert tag.get("display").getType() == TagType.TAG_COMPOUND: "Property 'tag.display' is not type of TAG_COMPOUND!";
-                CompoundMap display = (CompoundMap) nbt.get("display").getValue();
-
+                CompoundMap display = NBTPath.getPath(tag, "display", CompoundTag.class).getValue();
                 if(display.containsKey("color")){
-                    assert tag.get("color").getType() == TagType.TAG_INT : "Property 'tag.display.color' is not type of TAG_INT!";
-                    color = parseColor((Integer)tag.get("color").getValue());
+                    color = parseColor(NBTPath.getPath(display, "color", IntTag.class).getValue());
                 }
                 if(display.containsKey("LocName")){
-                    assert tag.get("LocName").getType() == TagType.TAG_INT : "Property 'tag.display.LocName' is not type of TAG_STRING!";
-                    locName = (String) tag.get("LocName").getValue();
+                    locName = NBTPath.getPath(display, "LocName", StringTag.class).getValue();
                 }
                 if(display.containsKey("Name")) {
-                    assert tag.get("Name").getType() == TagType.TAG_STRING : "Property 'tag.display.Name' is not type of TAG_STRING!";
-                    name = (String) tag.get("Name").getValue();
+                    name = NBTPath.getPath(display, "Name", StringTag.class).getValue();
                 }
                 if(display.containsKey("Lore")) {
-                    assert tag.get("Lore").getType() == TagType.TAG_LIST : "Property 'tag.display.Lore' is not type of TAG_LIST!";
-                    ListTag<StringTag> nbtLore = (ListTag<StringTag>) display.get("Lore");
+                    ListTag<StringTag> nbtLore = NBTPath.getPath(display, "Lore", ListTag.class);
                     lore = nbtLore.getValue().stream().map(StringTag::getValue).collect(Collectors.toList());
                 }
             }
@@ -77,13 +70,12 @@ public class NBTBasicItem implements INBTItem {
             /* Get enchantments */
             enchantments = NBTEnchantment.getAllFromItem(this);
             if(enchantments != null){
-                repairCost = (Integer)tag.get("RepairCost").getValue();
+                repairCost = NBTPath.getPath(tag, "RepairCost", IntTag.class).getValue();
             }
 
             /* Parse misc tags */
             if(tag.containsKey("Unbreakable")){
-                assert tag.get("Unbreakable").getType() == TagType.TAG_BYTE: "Property 'tag.Unbreakable' is not type of TAG_BYTE!";
-                unbreakable = ((Byte)tag.get("Unbreakable").getValue()) == 1;
+                unbreakable = (NBTPath.getPath(tag, "Unbreakable", ByteTag.class).getValue()) == 1;
             }
         }
     }

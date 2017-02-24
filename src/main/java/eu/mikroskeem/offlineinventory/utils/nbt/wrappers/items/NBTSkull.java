@@ -1,6 +1,7 @@
 package eu.mikroskeem.offlineinventory.utils.nbt.wrappers.items;
 
 import com.flowpowered.nbt.*;
+import eu.mikroskeem.offlineinventory.utils.nbt.utils.NBTPath;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -21,33 +22,21 @@ public class NBTSkull extends NBTBasicItem {
                 break;
             }
         }
-        CompoundMap nbtMap = super.getCompoundMap();
-        if(nbtMap.containsKey("tag") && skullType == SkullType.PLAYER) {
-            Tag rawTag = nbtMap.get("tag");
-            assert rawTag.getType() == TagType.TAG_COMPOUND : "Property 'tag' is not type of TAG_COMPOUND!";
-            CompoundMap tag = (CompoundMap) rawTag.getValue();
-            if(tag.containsKey("SkullOwner")){
-                Tag skOwner = tag.get("SkullOwner");
-                assert skOwner.getType() == TagType.TAG_COMPOUND : "Property 'tag.SkullOwner' is not type of TAG_COMPOUND!";
-                CompoundMap skullOwner = (CompoundMap)skOwner.getValue();
-                List<TextureData> textures = null;
-                if(skullOwner.containsKey("Properties")){
-                    Tag propertiesTag = skullOwner.get("Properties");
-                    assert propertiesTag.getType() == TagType.TAG_COMPOUND : "Property 'tag.SkullOwner.Properties' is not type of TAG_COMPOUND!";
-                    CompoundMap properties = (CompoundMap)propertiesTag.getValue();
-                    if(properties.containsKey("textures")){
-                        Tag texturesTag = properties.get("textures");
-                        assert texturesTag.getType() == TagType.TAG_LIST : "Property 'tag.SkullOwner.Properties.textures' is not type of TAG_LIST!";
-                        List<CompoundTag> texturesList = ((ListTag<CompoundTag>)texturesTag).getValue();
-                        textures = texturesList.stream().map(TextureData::parse).collect(Collectors.toList());
-                    }
+        if(skullType == SkullType.PLAYER) {
+            CompoundMap skullOwner = NBTPath.getPath(nbtTag, "tag.SkullOwner", CompoundTag.class).getValue();
+            List<TextureData> textures = null;
+            if (skullOwner.containsKey("Properties")) {
+                CompoundMap properties = NBTPath.getPath(skullOwner, "Properties", CompoundTag.class).getValue();
+                if (properties.containsKey("textures")) {
+                    List<CompoundTag> texturesList = NBTPath.getPath(properties, "textures", ListTag.class).getValue();
+                    textures = texturesList.stream().map(TextureData::parse).collect(Collectors.toList());
                 }
-                this.skullOwner = new SkullOwner(
-                        UUID.fromString((String)skullOwner.get("Id").getValue()),
-                        (String)skullOwner.get("Name").getValue(),
-                        textures
-                );
             }
+            this.skullOwner = new SkullOwner(
+                    UUID.fromString(NBTPath.getPath(skullOwner, "Id", StringTag.class).getValue()),
+                    NBTPath.getPath(skullOwner, "Name", StringTag.class).getValue(),
+                    textures
+            );
         }
     }
 
@@ -78,10 +67,9 @@ public class NBTSkull extends NBTBasicItem {
         private final String value;
 
         public static TextureData parse(CompoundTag nbt){
-            CompoundMap map = nbt.getValue();
             return new TextureData(
-                    (String)map.get("Signature").getValue(),
-                    (String)map.get("Value").getValue()
+                    NBTPath.getPath(nbt, "Signature", StringTag.class).getValue(),
+                    NBTPath.getPath(nbt, "Value", StringTag.class).getValue()
             );
         }
     }

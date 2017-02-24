@@ -1,6 +1,7 @@
 package eu.mikroskeem.offlineinventory.utils.nbt.wrappers.items;
 
 import com.flowpowered.nbt.*;
+import eu.mikroskeem.offlineinventory.utils.nbt.utils.NBTPath;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -21,30 +22,21 @@ public class NBTBookAndQuill extends NBTBasicItem {
     @SuppressWarnings("unchecked")
     public NBTBookAndQuill(CompoundTag nbtTag){
         super(nbtTag);
-        CompoundMap compoundMap = super.getCompoundMap();
-        CompoundMap tag = (CompoundMap) compoundMap.get("tag").getValue();
+        CompoundMap nbt = super.getCompoundMap();
+        CompoundMap tag = NBTPath.getPath(nbt, "tag", CompoundTag.class).getValue();
         if(tag.containsKey("pages")){
-            Tag pagesTag = tag.get("pages");
-            assert pagesTag.getType() == TagType.TAG_LIST : "Property 'tag.pages' is not type of TAG_LIST!";
-            List<StringTag> pages = ((ListTag<StringTag>) pagesTag).getValue();
+            List<StringTag> pages = NBTPath.getPath(nbt, "pages", ListTag.class).getValue();
             this.pages = pages.stream().map(StringTag::getValue).collect(Collectors.toList());
-            System.out.println(this.pages);
         }
         /* Written book tags */
         if(tag.containsKey("author")){
-            Tag authorTag = tag.get("author");
-            assert authorTag.getType() == TagType.TAG_STRING : "Property 'tag.author' is not type of TAG_LIST!";
-            author = (String)authorTag.getValue();
+            author = NBTPath.getPath(tag, "author", StringTag.class).getValue();
         }
         if(tag.containsKey("title")){
-            Tag titleTag = tag.get("title");
-            assert titleTag.getType() == TagType.TAG_STRING : "Property 'tag.title' is not type of TAG_LIST!";
-            title = (String)titleTag.getValue();
+            title = NBTPath.getPath(tag, "title", StringTag.class).getValue();
         }
         if(tag.containsKey("generation")){
-            Tag generationTag = tag.get("generation");
-            assert generationTag.getType() == TagType.TAG_INT : "Property 'tag.generation' is not type of TAG_INT!";
-            int gen = (Integer)generationTag.getValue();
+            int gen = NBTPath.getPath(tag, "generation", IntTag.class).getValue();
             for(Generation value : Generation.values()){
                 if(value.getNBTValue() == gen) {
                     generation = value;
@@ -53,9 +45,7 @@ public class NBTBookAndQuill extends NBTBasicItem {
             }
         }
         if(tag.containsKey("resolved")){
-            Tag resolvedTag = tag.get("resolved");
-            assert resolvedTag.getType() == TagType.TAG_BYTE : "Property 'tag.resolved' is not type of TAG_BYTE!";
-            resolved = (Byte)resolvedTag.getValue();
+            resolved = NBTPath.getPath(tag, "resolved", ByteTag.class).getValue();
         }
     }
 

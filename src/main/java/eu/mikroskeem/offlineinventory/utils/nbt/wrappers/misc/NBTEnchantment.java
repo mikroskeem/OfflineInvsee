@@ -1,6 +1,7 @@
 package eu.mikroskeem.offlineinventory.utils.nbt.wrappers.misc;
 
 import com.flowpowered.nbt.*;
+import eu.mikroskeem.offlineinventory.utils.nbt.utils.NBTPath;
 import eu.mikroskeem.offlineinventory.utils.nbt.wrappers.items.NBTBasicItem;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -24,12 +25,10 @@ public class NBTEnchantment {
     public static List<NBTEnchantment> getAllFromItem(NBTBasicItem item){
         CompoundMap nbt = item.getCompoundMap();
         if(nbt.containsKey("tag")){
-            assert nbt.get("tag").getType() == TagType.TAG_COMPOUND : "Property 'tag' is not type of TAG_COMPOUND!";
-            CompoundMap tag = (CompoundMap) nbt.get("tag").getValue();
+            CompoundMap tag = NBTPath.getPath(nbt, "tag", CompoundTag.class).getValue();
             if(tag.containsKey("ench")){
-                Tag ench = tag.get("ench");
-                assert ench.getType() == TagType.TAG_LIST : "Property 'tag.ench' is not type of TAG_LIST!";
-                return ((ListTag<CompoundTag>) ench).getValue().stream()
+                ListTag<CompoundTag> enchantments = NBTPath.getPath(tag, "ench", ListTag.class);
+                return enchantments.getValue().stream()
                         .map(NBTEnchantment::new).collect(Collectors.toList());
             }
         }

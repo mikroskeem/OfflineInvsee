@@ -7,12 +7,10 @@ import lombok.RequiredArgsConstructor;
 import org.bukkit.Material;
 import org.bukkit.block.ShulkerBox;
 import org.bukkit.enchantments.EnchantmentWrapper;
+import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.BlockStateMeta;
-import org.bukkit.inventory.meta.BookMeta;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.inventory.meta.*;
 import org.json.JSONObject;
 
 import java.lang.reflect.Constructor;
@@ -125,6 +123,17 @@ public class CBTranslator implements Translator {
                     SkullMeta sm = (SkullMeta)im;
                     /* This sucks :c */
                     sm.setOwner(skull.getSkullOwner().getName());
+                }
+                if(inbtItem instanceof NBTPotion){
+                    NBTPotion potion = (NBTPotion)inbtItem;
+                    PotionMeta pm = (PotionMeta)im;
+                    //pm.setBasePotionData(null);
+                    /* TODO: finish this */
+                }
+                if(inbtItem instanceof NBTSpawnEgg){
+                    NBTSpawnEgg spawnEgg = (NBTSpawnEgg)inbtItem;
+                    SpawnEggMeta sem = (SpawnEggMeta)im;
+                    sem.setSpawnedType(EntityType.fromName(spawnEgg.getEntityId().split(":")[1]));
                 }
                 is.setItemMeta(im);
 
